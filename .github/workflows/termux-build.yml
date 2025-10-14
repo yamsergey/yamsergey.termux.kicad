@@ -18,6 +18,72 @@ jobs:
       with:
         platforms: arm64,arm
 
+    - name: Create build script for aarch64
+      run: |
+        cat > build-aarch64.sh << 'SCRIPT_END'
+        #!/bin/bash
+        set -e
+
+        # Update package list
+        pkg update -y
+
+        # Install build dependencies
+        pkg install -y \
+          git cmake ninja clang python swig boost wxwidgets gtk3 glew glm \
+          cairo pixman curl ngspice opencascade openssl zlib zstd \
+          freetype harfbuzz fontconfig libgit2 protobuf patchelf
+
+        # Create build directory
+        mkdir -p build-termux
+        cd build-termux
+
+        # Configure with CMake
+        cmake .. \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$PREFIX \
+          -DKICAD_SCRIPTING_WXPYTHON=OFF \
+          -DKICAD_BUILD_QA_TESTS=OFF \
+          -DKICAD_SPICE_QA=OFF \
+          -DKICAD_BUILD_I18N=OFF \
+          -DKICAD_INSTALL_DEMOS=OFF \
+          -DKICAD_USE_EGL=ON \
+          -DKICAD_USE_BUNDLED_GLEW=ON
+
+        # Build
+        ninja -j$(nproc)
+
+        # Install to staging directory
+        DESTDIR=/workspace/termux-package ninja install
+
+        # Create package structure
+        cd /workspace
+        mkdir -p termux-package/data/data/com.termux/files/usr
+
+        # Copy installed files
+        if [ -d termux-package$PREFIX ]; then
+          cp -r termux-package$PREFIX/* termux-package/data/data/com.termux/files/usr/
+        fi
+
+        # Create DEBIAN control directory
+        mkdir -p termux-package/DEBIAN
+
+        # Generate control file
+        printf "Package: kicad\n" > termux-package/DEBIAN/control
+        printf "Version: %s\n" "$(date +%Y%m%d)" >> termux-package/DEBIAN/control
+        printf "Architecture: aarch64\n" >> termux-package/DEBIAN/control
+        printf "Maintainer: KiCad Developers\n" >> termux-package/DEBIAN/control
+        printf "Description: Electronic Design Automation Suite\n" >> termux-package/DEBIAN/control
+        printf " KiCad is an open source software suite for Electronic Design Automation (EDA).\n" >> termux-package/DEBIAN/control
+        printf " The programs handle Schematic Capture, and PCB Layout with Gerber output.\n" >> termux-package/DEBIAN/control
+        printf "Depends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf\n" >> termux-package/DEBIAN/control
+
+        # Build deb package
+        dpkg-deb --build termux-package kicad-termux-aarch64.deb
+        SCRIPT_END
+
+        chmod +x build-aarch64.sh
+
     - name: Build KiCad for Termux (aarch64)
       run: |
         docker run --rm \
@@ -25,90 +91,7 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           termux/termux-docker:aarch64 \
-          bash -c '
-            set -e
-
-            # Update package list
-            pkg update -y
-
-            # Install build dependencies
-            pkg install -y \
-              git \
-              cmake \
-              ninja \
-              clang \
-              python \
-              swig \
-              boost \
-              wxwidgets \
-              gtk3 \
-              glew \
-              glm \
-              cairo \
-              pixman \
-              curl \
-              ngspice \
-              opencascade \
-              openssl \
-              zlib \
-              zstd \
-              freetype \
-              harfbuzz \
-              fontconfig \
-              libgit2 \
-              protobuf \
-              patchelf
-
-            # Create build directory
-            mkdir -p build-termux
-            cd build-termux
-
-            # Configure with CMake
-            cmake .. \
-              -G Ninja \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_INSTALL_PREFIX=$PREFIX \
-              -DKICAD_SCRIPTING_WXPYTHON=OFF \
-              -DKICAD_BUILD_QA_TESTS=OFF \
-              -DKICAD_SPICE_QA=OFF \
-              -DKICAD_BUILD_I18N=OFF \
-              -DKICAD_INSTALL_DEMOS=OFF \
-              -DKICAD_USE_EGL=ON \
-              -DKICAD_USE_BUNDLED_GLEW=ON
-
-            # Build
-            ninja -j$(nproc)
-
-            # Install to staging directory
-            DESTDIR=/workspace/termux-package ninja install
-
-            # Create package structure
-            cd /workspace
-            mkdir -p termux-package/data/data/com.termux/files/usr
-
-            # Copy installed files
-            if [ -d termux-package$PREFIX ]; then
-              cp -r termux-package$PREFIX/* termux-package/data/data/com.termux/files/usr/
-            fi
-
-            # Create DEBIAN control directory
-            mkdir -p termux-package/DEBIAN
-
-            # Generate control file
-            cat > termux-package/DEBIAN/control <<-"CTRLEOF"
-		Package: kicad
-		Version: $(date +%Y%m%d)
-		Architecture: aarch64
-		Maintainer: KiCad Developers
-		Description: Electronic Design Automation Suite
-		 KiCad is an open source software suite for Electronic Design Automation (EDA).
-		 The programs handle Schematic Capture, and PCB Layout with Gerber output.
-		Depends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf
-		CTRLEOF
-
-            # Build deb package
-            dpkg-deb --build termux-package kicad-termux-aarch64.deb
-          '
+          bash /workspace/build-aarch64.sh
 
     - name: Upload aarch64 package
       uses: actions/upload-artifact@v4
@@ -131,6 +114,72 @@ jobs:
       with:
         platforms: arm64,arm
 
+    - name: Create build script for arm
+      run: |
+        cat > build-arm.sh << 'SCRIPT_END'
+        #!/bin/bash
+        set -e
+
+        # Update package list
+        pkg update -y
+
+        # Install build dependencies
+        pkg install -y \
+          git cmake ninja clang python swig boost wxwidgets gtk3 glew glm \
+          cairo pixman curl ngspice opencascade openssl zlib zstd \
+          freetype harfbuzz fontconfig libgit2 protobuf patchelf
+
+        # Create build directory
+        mkdir -p build-termux
+        cd build-termux
+
+        # Configure with CMake
+        cmake .. \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$PREFIX \
+          -DKICAD_SCRIPTING_WXPYTHON=OFF \
+          -DKICAD_BUILD_QA_TESTS=OFF \
+          -DKICAD_SPICE_QA=OFF \
+          -DKICAD_BUILD_I18N=OFF \
+          -DKICAD_INSTALL_DEMOS=OFF \
+          -DKICAD_USE_EGL=ON \
+          -DKICAD_USE_BUNDLED_GLEW=ON
+
+        # Build
+        ninja -j$(nproc)
+
+        # Install to staging directory
+        DESTDIR=/workspace/termux-package ninja install
+
+        # Create package structure
+        cd /workspace
+        mkdir -p termux-package/data/data/com.termux/files/usr
+
+        # Copy installed files
+        if [ -d termux-package$PREFIX ]; then
+          cp -r termux-package$PREFIX/* termux-package/data/data/com.termux/files/usr/
+        fi
+
+        # Create DEBIAN control directory
+        mkdir -p termux-package/DEBIAN
+
+        # Generate control file
+        printf "Package: kicad\n" > termux-package/DEBIAN/control
+        printf "Version: %s\n" "$(date +%Y%m%d)" >> termux-package/DEBIAN/control
+        printf "Architecture: arm\n" >> termux-package/DEBIAN/control
+        printf "Maintainer: KiCad Developers\n" >> termux-package/DEBIAN/control
+        printf "Description: Electronic Design Automation Suite\n" >> termux-package/DEBIAN/control
+        printf " KiCad is an open source software suite for Electronic Design Automation (EDA).\n" >> termux-package/DEBIAN/control
+        printf " The programs handle Schematic Capture, and PCB Layout with Gerber output.\n" >> termux-package/DEBIAN/control
+        printf "Depends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf\n" >> termux-package/DEBIAN/control
+
+        # Build deb package
+        dpkg-deb --build termux-package kicad-termux-arm.deb
+        SCRIPT_END
+
+        chmod +x build-arm.sh
+
     - name: Build KiCad for Termux (arm)
       run: |
         docker run --rm \
@@ -138,90 +187,7 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           termux/termux-docker:latest \
-          bash -c '
-            set -e
-
-            # Update package list
-            pkg update -y
-
-            # Install build dependencies
-            pkg install -y \
-              git \
-              cmake \
-              ninja \
-              clang \
-              python \
-              swig \
-              boost \
-              wxwidgets \
-              gtk3 \
-              glew \
-              glm \
-              cairo \
-              pixman \
-              curl \
-              ngspice \
-              opencascade \
-              openssl \
-              zlib \
-              zstd \
-              freetype \
-              harfbuzz \
-              fontconfig \
-              libgit2 \
-              protobuf \
-              patchelf
-
-            # Create build directory
-            mkdir -p build-termux
-            cd build-termux
-
-            # Configure with CMake
-            cmake .. \
-              -G Ninja \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_INSTALL_PREFIX=$PREFIX \
-              -DKICAD_SCRIPTING_WXPYTHON=OFF \
-              -DKICAD_BUILD_QA_TESTS=OFF \
-              -DKICAD_SPICE_QA=OFF \
-              -DKICAD_BUILD_I18N=OFF \
-              -DKICAD_INSTALL_DEMOS=OFF \
-              -DKICAD_USE_EGL=ON \
-              -DKICAD_USE_BUNDLED_GLEW=ON
-
-            # Build
-            ninja -j$(nproc)
-
-            # Install to staging directory
-            DESTDIR=/workspace/termux-package ninja install
-
-            # Create package structure
-            cd /workspace
-            mkdir -p termux-package/data/data/com.termux/files/usr
-
-            # Copy installed files
-            if [ -d termux-package$PREFIX ]; then
-              cp -r termux-package$PREFIX/* termux-package/data/data/com.termux/files/usr/
-            fi
-
-            # Create DEBIAN control directory
-            mkdir -p termux-package/DEBIAN
-
-            # Generate control file
-            cat > termux-package/DEBIAN/control <<-"CTRLEOF"
-		Package: kicad
-		Version: $(date +%Y%m%d)
-		Architecture: arm
-		Maintainer: KiCad Developers
-		Description: Electronic Design Automation Suite
-		 KiCad is an open source software suite for Electronic Design Automation (EDA).
-		 The programs handle Schematic Capture, and PCB Layout with Gerber output.
-		Depends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf
-		CTRLEOF
-
-            # Build deb package
-            dpkg-deb --build termux-package kicad-termux-arm.deb
-          '
+          bash /workspace/build-arm.sh
 
     - name: Upload arm package
       uses: actions/upload-artifact@v4
@@ -229,4 +195,3 @@ jobs:
         name: kicad-termux-arm
         path: kicad-termux-arm.deb
         if-no-files-found: error
-
