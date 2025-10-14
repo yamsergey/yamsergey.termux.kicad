@@ -27,12 +27,12 @@ jobs:
         #!/bin/bash
         set -e
 
-        # Update package list
-        pkg update -y
+        # Update package list (using apt directly since we're running as root)
+        apt update -y
 
         # Install build dependencies
-        pkg install -y \
-          git cmake ninja clang python swig boost wxwidgets gtk3 glew glm \
+        apt install -y \
+          git cmake ninja clang python swig libboost-dev wxwidgets gtk3 glew glm \
           cairo pixman curl ngspice opencascade openssl zlib zstd \
           freetype harfbuzz fontconfig libgit2 protobuf patchelf
 
