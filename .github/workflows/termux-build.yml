@@ -16,7 +16,10 @@ jobs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
       with:
-        platforms: arm64
+        platforms: linux/arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: Create build script for aarch64
       run: |
@@ -87,11 +90,12 @@ jobs:
     - name: Build KiCad for Termux (aarch64)
       run: |
         docker run --rm \
-          --platform linux/arm64 \
+          --platform linux/arm64/v8 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
+          --entrypoint /bin/bash \
           termux/termux-docker:aarch64 \
-          bash /workspace/build-aarch64.sh
+          /workspace/build-aarch64.sh
 
     - name: Upload aarch64 package
       uses: actions/upload-artifact@v4
