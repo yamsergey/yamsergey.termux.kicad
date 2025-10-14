@@ -95,7 +95,7 @@ jobs:
             mkdir -p termux-package/DEBIAN
 
             # Generate control file
-            cat > termux-package/DEBIAN/control << EOF
+            cat > termux-package/DEBIAN/control << "CONTROL_EOF"
 Package: kicad
 Version: $(date +%Y%m%d)
 Architecture: aarch64
@@ -104,7 +104,7 @@ Description: Electronic Design Automation Suite
  KiCad is an open source software suite for Electronic Design Automation (EDA).
  The programs handle Schematic Capture, and PCB Layout with Gerber output.
 Depends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf
-EOF
+CONTROL_EOF
 
             # Build deb package
             dpkg-deb --build termux-package kicad-termux-aarch64.deb
@@ -208,7 +208,7 @@ EOF
             mkdir -p termux-package/DEBIAN
 
             # Generate control file
-            cat > termux-package/DEBIAN/control << EOF
+            cat > termux-package/DEBIAN/control << "CONTROL_EOF"
 Package: kicad
 Version: $(date +%Y%m%d)
 Architecture: arm
@@ -217,7 +217,7 @@ Description: Electronic Design Automation Suite
  KiCad is an open source software suite for Electronic Design Automation (EDA).
  The programs handle Schematic Capture, and PCB Layout with Gerber output.
 Depends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf
-EOF
+CONTROL_EOF
 
             # Build deb package
             dpkg-deb --build termux-package kicad-termux-arm.deb
