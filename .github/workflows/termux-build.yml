@@ -89,12 +89,12 @@ jobs:
 
     - name: Build KiCad for Termux (aarch64)
       run: |
-        docker run -it --rm \
+        docker run --rm \
           --platform linux/arm64/v8 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           termux/termux-docker:aarch64 \
-          bash -c "cd /workspace && bash build-aarch64.sh"
+          bash -c "apt update && apt install -y git cmake ninja clang python swig boost wxwidgets gtk3 glew glm cairo pixman curl ngspice opencascade openssl zlib zstd freetype harfbuzz fontconfig libgit2 protobuf patchelf && cd /workspace && mkdir -p build-termux && cd build-termux && cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\$PREFIX -DKICAD_SCRIPTING_WXPYTHON=OFF -DKICAD_BUILD_QA_TESTS=OFF -DKICAD_SPICE_QA=OFF -DKICAD_BUILD_I18N=OFF -DKICAD_INSTALL_DEMOS=OFF -DKICAD_USE_EGL=ON -DKICAD_USE_BUNDLED_GLEW=ON && ninja -j\$(nproc) && DESTDIR=/workspace/termux-package ninja install && cd /workspace && mkdir -p termux-package/data/data/com.termux/files/usr && if [ -d termux-package\$PREFIX ]; then cp -r termux-package\$PREFIX/* termux-package/data/data/com.termux/files/usr/; fi && mkdir -p termux-package/DEBIAN && printf 'Package: kicad\nVersion: %s\nArchitecture: aarch64\nMaintainer: KiCad Developers\nDescription: Electronic Design Automation Suite\n KiCad is an open source software suite for Electronic Design Automation (EDA).\n The programs handle Schematic Capture, and PCB Layout with Gerber output.\nDepends: wxwidgets, gtk3, glew, glm, cairo, pixman, curl, ngspice, opencascade, openssl, zlib, zstd, freetype, harfbuzz, fontconfig, libgit2, protobuf\n' \"\$(date +%Y%m%d)\" > termux-package/DEBIAN/control && dpkg-deb --build termux-package kicad-termux-aarch64.deb"
 
     - name: Upload aarch64 package
       uses: actions/upload-artifact@v4
