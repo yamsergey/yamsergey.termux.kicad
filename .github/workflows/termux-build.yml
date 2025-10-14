@@ -27,14 +27,11 @@ jobs:
         #!/bin/bash
         set -e
 
-        # Workaround for running pkg as root - set TERMUX_APP__UID
-        export TERMUX_APP__UID=1000
-
         # Update package list
-        pkg update -y
+        apt update -y
 
         # Install build dependencies
-        pkg install -y \
+        apt install -y \
           git cmake ninja clang python swig boost wxwidgets gtk3 glew glm \
           cairo pixman curl ngspice opencascade openssl zlib zstd \
           freetype harfbuzz fontconfig libgit2 protobuf patchelf
@@ -92,13 +89,12 @@ jobs:
 
     - name: Build KiCad for Termux (aarch64)
       run: |
-        docker run --rm \
+        docker run -it --rm \
           --platform linux/arm64/v8 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          --entrypoint /bin/bash \
           termux/termux-docker:aarch64 \
-          /workspace/build-aarch64.sh
+          bash -c "cd /workspace && bash build-aarch64.sh"
 
     - name: Upload aarch64 package
       uses: actions/upload-artifact@v4
