@@ -27,12 +27,12 @@ jobs:
         #!/bin/bash
         set -e
 
-        # Update package list (using apt directly since we're running as root)
-        apt update -y
+        # Update package list
+        pkg update -y
 
         # Install build dependencies
-        apt install -y \
-          git cmake ninja clang python swig libboost-dev wxwidgets gtk3 glew glm \
+        pkg install -y \
+          git cmake ninja clang python swig boost wxwidgets gtk3 glew glm \
           cairo pixman curl ngspice opencascade openssl zlib zstd \
           freetype harfbuzz fontconfig libgit2 protobuf patchelf
 
@@ -93,6 +93,7 @@ jobs:
           --platform linux/arm64/v8 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
+          --user builder \
           --entrypoint /bin/bash \
           termux/termux-docker:aarch64 \
           /workspace/build-aarch64.sh
