@@ -27,6 +27,9 @@ jobs:
         #!/bin/bash
         set -e
 
+        # Workaround for running pkg as root - set TERMUX_APP__UID
+        export TERMUX_APP__UID=1000
+
         # Update package list
         pkg update -y
 
@@ -93,7 +96,6 @@ jobs:
           --platform linux/arm64/v8 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          --user builder \
           --entrypoint /bin/bash \
           termux/termux-docker:aarch64 \
           /workspace/build-aarch64.sh
